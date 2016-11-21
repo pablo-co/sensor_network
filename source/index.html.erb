@@ -1,0 +1,277 @@
+---
+title: Welcome to Middleman
+---
+
+<div id="graph"></div>
+<div class="controls">
+  <div class="form-control">
+    <label>Number of sensors</label>
+    <input id="sensors" type="number" name="sensors" />
+  </div>
+  <div class="form-control">
+    <label>Estimated average degree</label>
+    <input id="average_degree" type="number" name="sensors" />
+  </div>
+  <div class="form-control">
+    <label>Distance bound for adjacency</label>
+    <input id="radius" type="number" name="sensors" />
+  </div>
+  <div class="form-control">
+    <label>Number of sensors</label>
+    <select id="type">
+      <option value="square">Square</option>
+      <option value="disk">Disk</option>
+      <option value="sphere">Sphere</option>
+    </select>
+  </div>
+
+  <button id="generate" class="button">Generate</button>
+</div>
+
+<div class="stats">
+  <div class=data">
+    <table>
+      <tr>
+        <td>Sensors</td>
+        <td id="s_sensors"></td>
+      </tr>
+      <tr>
+        <td>Pairwise sensor adjacencies</td>
+        <td id="s_edges"></td>
+      </tr>
+      <tr>
+        <td>Distance for adjacency</td>
+        <td id="s_radius"></td>
+      </tr>
+      <tr>
+        <td>Average degree</td>
+        <td id="s_average_degree"></td>
+      </tr>
+      <tr>
+        <td>Minimum degree</td>
+        <td id="s_min_degree"></td>
+      </tr>
+      <tr>
+        <td>Maximum degree</td>
+        <td id="s_max_degree"></td>
+      </tr>
+      <tr>
+        <td>Maximum degree when deleted</td>
+        <td id="s_max_deleted_degree"></td>
+      </tr>
+      <tr>
+        <td>Terminal clique size</td>
+        <td id="s_clique"></td>
+      </tr>
+      <tr>
+        <td># of colors</td>
+        <td id="s_colors"></td>
+      </tr>
+      <tr>
+        <td>Maximum color class size</td>
+        <td id="s_max_color_size"></td>
+      </tr>
+      <tr>
+        <td># of vertices in backbone</td>
+        <td id="s_backbone_nodes"></td>
+      </tr>
+      <tr>
+        <td># of edges in backbone</td>
+        <td id="s_backbone_edges"></td>
+      </tr>
+      <tr>
+        <td># of faces in backbone</td>
+        <td id="s_backbone_faces"></td>
+      </tr>
+      <tr>
+        <td>Domination %</td>
+        <td id="s_backbone_edges_per"></td>
+      </tr>
+    </table>
+  </div>
+  <div class="modal">
+    <label for="modal-1">
+      <div class="modal-trigger">Degree Distribution</div>
+    </label>
+    <input class="modal-state" id="modal-1" type="checkbox" />
+    <div class="modal-fade-screen">
+      <div class="modal-inner">
+        <div class="modal-close" for="modal-1"></div>
+        <h1>Degree Distribution</h1>
+        <div id="graph-stats"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal">
+    <label for="modal-2">
+      <div class="modal-trigger">Sequential Coloring</div>
+    </label>
+    <input class="modal-state" id="modal-2" type="checkbox" />
+    <div class="modal-fade-screen">
+      <div class="modal-inner">
+        <div class="modal-close" for="modal-2"></div>
+        <h1>Sequential Coloring Degrees</h1>
+        <div id="ordering-graph"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal">
+    <label for="modal-3">
+      <div class="modal-trigger">Color Distribution</div>
+    </label>
+    <input class="modal-state" id="modal-3" type="checkbox" />
+    <div class="modal-fade-screen">
+      <div class="modal-inner">
+        <div class="modal-close" for="modal-3"></div>
+        <h1>Node Color Distribution</h1>
+        <div id="color-graph"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="button-group">
+    <label>
+      <input id="graph_tab" type="radio" name="button-group" value="item" checked>
+      <span class="button-group-item">Graph</span>
+    </label>
+    <label>
+      <input id="backbone1_tab" type="radio" name="button-group" value="other-item">
+      <span class="button-group-item">Backbone #1</span>
+    </label>
+    <label>
+      <input id="backbone2_tab" type="radio" name="button-group" value="other-item">
+      <span class="button-group-item">Backbone #2</span>
+    </label>
+  </div>
+</div>
+
+
+<script>
+var visualGraph = G.graph({
+  nodeImage: "<%= image_path("disc.png") %>",
+  nodeImageTransparent: true,
+  antialias: true,
+  bgColor: "black",
+  edgeWidth: 0.5,
+  nodeSize: 6,
+  hover: function (node) { $("#label").text("Solar system: " + node.name); },
+});
+
+visualGraph.renderIn("graph");
+
+var backbones = [];
+
+function convertSquare(total, estimate) {
+  return Math.sqrt(estimate / (Math.PI * total));
+}
+
+function convertDisk(total, estimate) {
+  return Math.sqrt(estimate / total);
+}
+
+function convertSphere(total, estimate) {
+  return Math.sqrt(4 * estimate / total);
+}
+
+function recalculate() {
+  var val = parseInt($("#sensors").val());
+  var average = parseInt($("#average_degree").val());
+  var rVal = convertion[$("#type").val()](val, average);
+  $("#radius").val(rVal);
+}
+
+var convertion = {
+  "square": convertSquare,
+  "disk": convertDisk,
+  "sphere": convertSphere
+};
+
+var colors = {
+  "1": "red",
+  "2": "blue",
+  "3": "aqua",
+  "4": "green",
+  "5": "beige",
+  "6": "bisque",
+  "7": "blueviolet",
+  "8": "brown",
+  "9": "burlywood",
+  "10": "chocolate",
+  "11": "darkmagenta",
+  "12": "darkred",
+  "13": "darksalmon",
+  "14": "deeppink",
+  "15": "dimgray",
+  "16": "firebrick",
+  "17": "gold",
+  "18": "goldenrod",
+  "19": "greenyellow",
+  "20": "indianred",
+  "21": "khaki",
+  "22": "indigo",
+  "23": "lightseagreen",
+};
+
+var graph = {};
+
+function updateStats(graph, backbone) {
+  $("#s_sensors").html(graph.sensors);
+  $("#s_average_degree").html(graph.average_degree);
+  $("#s_min_degree").html(graph.minDegree);
+  $("#s_max_degree").html(graph.maxDegree);
+  $("#s_max_deleted_degree").html(graph.maxDeletedDegree);
+  $("#s_edges").html(graph.edges);
+  $("#s_radius").html(graph.radius.toFixed(2));
+  $("#s_colors").html(graph.colors);
+  $("#s_max_color_size").html(graph.maxColorSize);
+  $("#s_clique").html(graph.clique);
+  $("#s_backbone_nodes").html(backbone.nodes.length);
+  $("#s_backbone_edges").html(backbone.edges);
+  if (graph.type == "sphere") {
+    $("#s_backbone_faces").html(backbone.edges - backbone.nodes.length + 1);
+  }
+  $("#s_backbone_edges_per").html((backbone.nodes.length / graph.nodes.length * 100).toFixed(2));
+}
+
+$(function() {
+  $("#average_degree").on("input", function() {
+    recalculate();
+  });
+
+  $("#generate").click(function() {
+    recalculate();
+    graph = {
+      sensors: parseInt($("#sensors").val()),
+      radius: parseFloat($("#radius").val()),
+      type: $("#type").val()
+    };
+    backbones = generateFromGraph(graph, visualGraph);
+    updateStats(graph, backbones[0]);
+    visualGraph.enableAutoRender();
+  });
+
+  $("#graph_tab").click(function() {
+    displayGraph(graph, visualGraph, function(node) { return "azure" });
+    colorMinMaxDegreeNodes(graph);
+    visualGraph.enableAutoRender();
+  });
+
+  $("#backbone1_tab").click(function() {
+    displayGraph(backbones[0], visualGraph, function(node) { return colors[node.color]; });
+    updateStats(graph, backbones[0]);
+    visualGraph.enableAutoRender();
+  });
+
+  $("#backbone2_tab").click(function() {
+    displayGraph(backbones[1], visualGraph, function(node) { return colors[node.color]; });
+    updateStats(graph, backbones[1]);
+    visualGraph.enableAutoRender();
+  });
+});
+
+</script>

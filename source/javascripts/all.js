@@ -1,0 +1,10 @@
+//= require jquery
+//= require bit-field
+//= require generation
+//= require ordering
+//= require coloring
+//= require stats
+//= require graphs
+//= require backbone
+//= require main
+//= require modal
